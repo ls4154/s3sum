@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash"
 	"hash/crc32"
+	"hash/crc64"
 	"io"
 	"os"
 )
@@ -21,15 +22,17 @@ const (
 	checksumCRC32C
 	checksumSHA1
 	checksumSHA256
+	checksumCRC64NVME
 )
 
 func newChecksumCalculator() *checksumCalculator {
 	checksums := []hash.Hash{
-		checksumMD5:    md5.New(),
-		checksumCRC32:  crc32.New(crc32.MakeTable(crc32.IEEE)),
-		checksumCRC32C: crc32.New(crc32.MakeTable(crc32.Castagnoli)),
-		checksumSHA1:   sha1.New(),
-		checksumSHA256: sha256.New(),
+		checksumMD5:       md5.New(),
+		checksumCRC32:     crc32.New(crc32.MakeTable(crc32.IEEE)),
+		checksumCRC32C:    crc32.New(crc32.MakeTable(crc32.Castagnoli)),
+		checksumSHA1:      sha1.New(),
+		checksumSHA256:    sha256.New(),
+		checksumCRC64NVME: crc64.New(crc64.MakeTable(0x9a6c9329ac4bc9b5)),
 	}
 	writer := make([]io.Writer, len(checksums))
 	for i, h := range checksums {
@@ -68,11 +71,12 @@ func calcChecksum(path string) {
 	}
 
 	fmt.Printf("ETag: %s\n", hex.EncodeToString(calc.Result(checksumMD5)))
+	fmt.Printf("Content-MD5: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumMD5)))
 	fmt.Printf("x-amz-checksum-crc32: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumCRC32)))
 	fmt.Printf("x-amz-checksum-crc32c: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumCRC32C)))
+	fmt.Printf("x-amz-checksum-crc64nvme: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumCRC64NVME)))
 	fmt.Printf("x-amz-checksum-sha1: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumSHA1)))
 	fmt.Printf("x-amz-checksum-sha256: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumSHA256)))
-	fmt.Printf("Content-MD5: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumMD5)))
 }
 
 func main() {
