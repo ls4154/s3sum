@@ -77,6 +77,7 @@ func calcChecksum(path string) {
 	fmt.Printf("x-amz-checksum-crc64nvme: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumCRC64NVME)))
 	fmt.Printf("x-amz-checksum-sha1: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumSHA1)))
 	fmt.Printf("x-amz-checksum-sha256: %s\n", base64.StdEncoding.EncodeToString(calc.Result(checksumSHA256)))
+	fmt.Printf("x-amz-content-sha256: %s\n", hex.EncodeToString(calc.Result(checksumSHA256)))
 }
 
 func main() {
